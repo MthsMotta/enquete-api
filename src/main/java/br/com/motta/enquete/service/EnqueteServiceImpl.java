@@ -81,8 +81,9 @@ public class EnqueteServiceImpl implements EnqueteService {
     public EnqueteResultadoResponseDTO resultado(Long enqueteId) {
         Enquete enquete = enqueteRepository.findById(enqueteId).orElseThrow(() -> new RecursoNaoEncontradoException("Enquete não encontrada"));
         List<OpcaoResultadoDTO> opcoesResultado = enquete.getOpcoes().stream().map(opcao -> {
-            double percentualCalculado =  (double )opcao.getQuantidadeVotos() / enquete.getTotalVotos() * 100;
-            return OpcoesVotoMapper.toOpcaoResultadoDTO(opcao, percentualCalculado);
+            double percentual = (double) opcao.getQuantidadeVotos() / enquete.getTotalVotos() * 100;
+            double percentualArredondado = Math.round(percentual * 100) / 100.0;
+            return OpcoesVotoMapper.toOpcaoResultadoDTO(opcao, percentualArredondado);
         }).sorted(Comparator.comparingInt(OpcaoResultadoDTO::quantidadeVotos).reversed()).toList();
         String vencedora = opcoesResultado.getFirst().texto();
         return EnqueteMapper.toResultadoDTO(enquete.getTotalVotos(), opcoesResultado, vencedora);
