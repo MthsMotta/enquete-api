@@ -2,12 +2,15 @@ package br.com.motta.enquete.mapper;
 
 import br.com.motta.enquete.dto.EnqueteRequestDTO;
 import br.com.motta.enquete.dto.EnqueteResponseDTO;
+import br.com.motta.enquete.dto.EnqueteResultadoResponseDTO;
+import br.com.motta.enquete.dto.OpcaoResultadoDTO;
 import br.com.motta.enquete.model.Enquete;
 import br.com.motta.enquete.model.OpcoesVoto;
 import br.com.motta.enquete.model.Status;
 import br.com.motta.enquete.model.Usuario;
 
 import java.time.LocalDate;
+import java.util.List;
 
 
 public class EnqueteMapper {
@@ -39,5 +42,9 @@ public class EnqueteMapper {
         enquete.setDataCriacao(LocalDate.now());
         enquete.setUsuario(usuario);
         return enquete;
+    }
+
+    public static EnqueteResultadoResponseDTO toResultadoDTO(Integer totalVotos, List<OpcaoResultadoDTO> opcoes, String vencedora){
+        return new EnqueteResultadoResponseDTO(totalVotos, opcoes, vencedora);
     }
 }

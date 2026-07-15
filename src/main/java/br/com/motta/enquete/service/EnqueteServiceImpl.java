@@ -2,10 +2,14 @@ package br.com.motta.enquete.service;
 
 import br.com.motta.enquete.dto.EnqueteRequestDTO;
 import br.com.motta.enquete.dto.EnqueteResponseDTO;
+import br.com.motta.enquete.dto.EnqueteResultadoResponseDTO;
+import br.com.motta.enquete.dto.OpcaoResultadoDTO;
 import br.com.motta.enquete.exception.RecursoNaoEncontradoException;
 import br.com.motta.enquete.exception.RegraDeNegocioException;
 import br.com.motta.enquete.mapper.EnqueteMapper;
+import br.com.motta.enquete.mapper.OpcoesVotoMapper;
 import br.com.motta.enquete.model.Enquete;
+import br.com.motta.enquete.model.OpcoesVoto;
 import br.com.motta.enquete.model.Status;
 import br.com.motta.enquete.model.Usuario;
 import br.com.motta.enquete.repository.EnqueteRepository;
@@ -14,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -70,5 +75,16 @@ public class EnqueteServiceImpl implements EnqueteService {
         enqueteCancelada.setDataEncerramento(LocalDate.now());
         enqueteCancelada.setStatus(Status.CANCELADA);
         return EnqueteMapper.toDTO(enqueteCancelada);
+    }
+
+    @Override
+    public EnqueteResultadoResponseDTO resultado(Long enqueteId) {
+        Enquete enquete = enqueteRepository.findById(enqueteId).orElseThrow(() -> new RecursoNaoEncontradoException("Enquete não encontrada"));
+        List<OpcaoResultadoDTO> opcoesResultado = enquete.getOpcoes().stream().map(opcao -> {
+            double percentualCalculado =  (double )opcao.getQuantidadeVotos() / enquete.getTotalVotos() * 100;
+            return OpcoesVotoMapper.toOpcaoResultadoDTO(opcao, percentualCalculado);
+        }).sorted(Comparator.comparingInt(OpcaoResultadoDTO::quantidadeVotos).reversed()).toList();
+        String vencedora = opcoesResultado.getFirst().texto();
+        return EnqueteMapper.toResultadoDTO(enquete.getTotalVotos(), opcoesResultado, vencedora);
     }
 }
